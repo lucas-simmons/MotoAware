@@ -1,0 +1,10 @@
+#root{
+  display: flex;
+}
+
+.input {
+  display: flex;
+  margin: 10px;
+  justify-content:right;
+  align-items: center;
+}
