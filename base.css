@@ -6,3 +6,6 @@ header {
 body {
     background-color: rgba(255, 170, 162, 0.943);
 }
+#map { 
+    height: 180px; 
+}

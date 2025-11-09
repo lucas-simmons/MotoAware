@@ -4,15 +4,21 @@ import React, { useState, useEffect } from "react";
 function RouteDisplay({ origin, destination }) {
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
+  const coreLibrary = useMapsLibrary("core");
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
-  const [routes, setRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
+  const [hasFitBounds, setHasFitBounds] = useState(false);
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
     setDirectionsService(new routesLibrary.DirectionsService());
-    setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
+    setDirectionsRenderer(
+      new routesLibrary.DirectionsRenderer({
+        map,
+        preserveViewport: true,
+      })
+    );
   }, [routesLibrary, map]);
 
   useEffect(() => {
@@ -21,26 +27,40 @@ function RouteDisplay({ origin, destination }) {
 
     directionsService.route(
       {
-        origin: origin,
-        destination: destination,
+        origin,
+        destination,
         travelMode: "DRIVING",
         provideRouteAlternatives: true,
       },
       (response, status) => {
         if (status === "OK") {
-          setRoutes(response.routes);
-          setSelectedRoute(response.routes[0]); // Display first route by default
+          const firstRoute = response.routes[0];
+          setSelectedRoute(firstRoute);
           directionsRenderer.setDirections(response);
+
+          if (coreLibrary && map && !hasFitBounds) {
+            const bounds = new coreLibrary.LatLngBounds();
+            firstRoute.overview_path.forEach((p) => bounds.extend(p));
+            map.fitBounds(bounds);
+            setHasFitBounds(true);
+          }
         } else {
           console.error("Directions request failed:", status);
         }
       }
     );
-  }, [directionsService, directionsRenderer, origin, destination, routes]);
+  }, [
+    directionsService,
+    directionsRenderer,
+    origin,
+    destination,
+    coreLibrary,
+    map,
+    hasFitBounds,
+  ]);
 
   return (
     <div>
-      {/* You can display route summaries or alternatives here */}
       {selectedRoute && (
         <div>
           <h3>Selected Route Summary:</h3>
@@ -50,4 +70,5 @@ function RouteDisplay({ origin, destination }) {
     </div>
   );
 }
+
 export default RouteDisplay;
