@@ -3,7 +3,7 @@ import { useMapsLibrary } from "@vis.gl/react-google-maps";
 
 export default function PlaceAutocompleteInput({ label, onSelect }) {
   const inputRef = useRef(null);
-  const placesLib = useMapsLibrary("places"); // ensures 'places' is loaded
+  const placesLib = useMapsLibrary("places");
 
   useEffect(() => {
     if (!placesLib || !inputRef.current) return;

@@ -26,7 +26,7 @@ const App = () => {
     <>
       <APIProvider
         apiKey={apiKey}
-        libraries={["places"]}
+        libraries={["places", "geometry", "routes"]}
         onLoad={() => console.log("Google Maps API loaded")}
         onError={(e) => console.error("Maps API failed to load", e)}
       >

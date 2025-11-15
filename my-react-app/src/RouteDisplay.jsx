@@ -1,5 +1,6 @@
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import React, { useState, useEffect } from "react";
+import { computeDetailedCurvature } from "./curvature.js"; // we'll add this file
 
 function RouteDisplay({ origin, destination }) {
   const map = useMap();
@@ -9,6 +10,7 @@ function RouteDisplay({ origin, destination }) {
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [hasFitBounds, setHasFitBounds] = useState(false);
+  const [curvature, setCurvature] = useState(null);
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
@@ -38,6 +40,23 @@ function RouteDisplay({ origin, destination }) {
           setSelectedRoute(firstRoute);
           directionsRenderer.setDirections(response);
 
+          const pathCoords = firstRoute.overview_path.map((p) => ({
+            lat: p.lat(),
+            lng: p.lng(),
+          }));
+
+          const result = computeDetailedCurvature(pathCoords);
+
+          setCurvature(result);
+          console.log("avgAngleDeg", result.avgAngleDeg);
+          console.log("avgCurvatureRadPerM", result.avgCurvatureRadPerM);
+          console.log(
+            "integratedCurvatureRad",
+            result.integratedCurvature,
+            "=> degrees",
+            (result.integratedCurvature * 180) / Math.PI
+          );
+
           if (coreLibrary && map && !hasFitBounds) {
             const bounds = new coreLibrary.LatLngBounds();
             firstRoute.overview_path.forEach((p) => bounds.extend(p));
@@ -65,10 +84,10 @@ function RouteDisplay({ origin, destination }) {
         <div>
           <h3>Selected Route Summary:</h3>
           <p>{selectedRoute.summary}</p>
+          {curvature !== null && <p>Average Curvature: radians</p>}
         </div>
       )}
     </div>
   );
 }
-
 export default RouteDisplay;
