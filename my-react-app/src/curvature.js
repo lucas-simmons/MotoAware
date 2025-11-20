@@ -1,3 +1,5 @@
+import CurvatureLine from "./CurvatureLine";
+
 const EARTH_R = 6371000; // meters
 
 // Convert lat/lng (degrees) to local planar meters (equirectangular around a center latitude)
@@ -17,6 +19,11 @@ function dist(a, b) {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
   return Math.sqrt(dx * dx + dy * dy);
+}
+export function curvatureToColor(seg) {
+  if (seg < 0.0005) return "#00FF00"; // green
+  if (seg < 0.002) return "#FFFF00"; //yellow
+  return "#FF0000"; //red
 }
 
 // Angle (radians) between vect a->b and b->c, with straight=0
@@ -105,5 +112,6 @@ export function computeDetailedCurvature(coords) {
     integratedCurvature: totalAngle, // total radians turned along route
     totalLengthMeters: totalLen,
     curvatureProfile: profile,
+    routeCoords: coords,
   };
 }
