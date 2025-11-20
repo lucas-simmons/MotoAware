@@ -16,7 +16,6 @@ function RouteDisplay({ origin, destination }) {
   const [showCurves, setShowCurves] = useState([false, false, false]);
   const [hasFitBounds, setHasFitBounds] = useState(false);
 
-  // Initialize renderer + service
   useEffect(() => {
     if (!routesLibrary || !map) return;
     setDirectionsService(new routesLibrary.DirectionsService());
@@ -51,11 +50,10 @@ function RouteDisplay({ origin, destination }) {
           return;
         }
 
-        const allRoutes = response.routes.slice(0, 3); // first 3 routes only
+        const allRoutes = response.routes.slice(0, 3);
         setRoutes(allRoutes);
         directionsRenderer.setDirections(response);
 
-        // Fit bounds to route 1 once
         if (coreLibrary && map && !hasFitBounds) {
           const bounds = new coreLibrary.LatLngBounds();
           allRoutes[0].overview_path.forEach((p) => bounds.extend(p));
@@ -63,7 +61,6 @@ function RouteDisplay({ origin, destination }) {
           setHasFitBounds(true);
         }
 
-        // Compute curvature for each route
         const newCurvatures = allRoutes.map((r) => {
           const leg = r.legs[0];
           const steps = leg.steps;
