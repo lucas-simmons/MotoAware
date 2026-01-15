@@ -2,9 +2,11 @@ import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import React, { useState, useEffect } from "react";
 import { computeDetailedCurvature } from "./curvature.js";
 import CurvatureLine from "./CurvatureLine.jsx";
+import RouteLine from "./RouteLine.jsx";
 
 function RouteDisplay({ origin, destination }) {
   const map = useMap();
+  // const mapsLib = useMapsLibrary("maps");
   const routesLibrary = useMapsLibrary("routes");
   const coreLibrary = useMapsLibrary("core");
 
@@ -13,6 +15,7 @@ function RouteDisplay({ origin, destination }) {
 
   const [routes, setRoutes] = useState([]);
   const [curvatures, setCurvatures] = useState([]);
+  const [showLine, setShowLine] = useState([false, false, false]);
   const [showCurves, setShowCurves] = useState([false, false, false]);
   const [hasFitBounds, setHasFitBounds] = useState(false);
 
@@ -24,7 +27,7 @@ function RouteDisplay({ origin, destination }) {
         map,
         preserveViewport: true,
         polylineOptions: {
-          strokeColor: "#000000",
+          strokeColor: "#4c00ffff",
           strokeOpacity: 0.4,
           strokeWeight: 2,
         },
@@ -53,6 +56,15 @@ function RouteDisplay({ origin, destination }) {
         const allRoutes = response.routes.slice(0, 3);
         setRoutes(allRoutes);
         directionsRenderer.setDirections(response);
+
+        setRoutes(
+          allRoutes.map((r) =>
+            r.overview_path.map((p) => ({
+              lat: p.lat(),
+              lng: p.lng(),
+            }))
+          )
+        );
 
         if (coreLibrary && map && !hasFitBounds) {
           const bounds = new coreLibrary.LatLngBounds();
@@ -83,6 +95,14 @@ function RouteDisplay({ origin, destination }) {
     hasFitBounds,
   ]);
 
+  function toggleLine(i) {
+    setShowLine((old) => {
+      const copy = [...old];
+      copy[i] = !copy[i];
+      return copy;
+    });
+  }
+
   function toggleCurve(i) {
     setShowCurves((old) => {
       const copy = [...old];
@@ -94,12 +114,42 @@ function RouteDisplay({ origin, destination }) {
   return (
     <div>
       <h2>Route Options</h2>
-
       {routes.map((route, i) => (
         <div key={i} style={{ marginBottom: "12px" }}>
           <h3>
             Route {i + 1}: {route.summary}
           </h3>
+
+          <button onClick={() => toggleLine(i)}>
+            {showLine[i] ? "Hide Line" : "Show Line"}
+          </button>
+
+          <button onClick={() => toggleCurve(i)}>
+            {showCurves[i] ? "Hide Curves" : "Show Curves"}
+          </button>
+
+          {showLine[i] && curvatures[i] && (
+            <RouteLine coords={curvatures[i].routeCoords} color="#000000" />
+          )}
+
+          {showCurves[i] && curvatures[i] && (
+            <CurvatureLine
+              coords={curvatures[i].routeCoords}
+              profile={curvatures[i].curvatureProfile}
+            />
+          )}
+        </div>
+      ))}
+
+      {/* {routes.map((route, i) => (
+        <div key={i} style={{ marginBotom: "12px" }}>
+          <h3>
+            Route {i + 1}: {route.summary}
+          </h3>
+
+          <button onClick={() => toggleLine(i)}>
+            {showLine[i] ? "Hide Route" : "Show Route"}
+          </button>
 
           {curvatures[i] && (
             <>
@@ -116,7 +166,7 @@ function RouteDisplay({ origin, destination }) {
             </>
           )}
         </div>
-      ))}
+      ))} */}
     </div>
   );
 }

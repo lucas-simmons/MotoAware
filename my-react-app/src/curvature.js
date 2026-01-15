@@ -77,7 +77,8 @@ export function computeDetailedCurvature(coords) {
       b = pts[i],
       c = pts[i + 1];
     const angle = angleAt(a, b, c); // radians, 0 = straight
-    // segment length to normalize: average length of adjacent segments (or use segLen[i-1] or i)
+    // segment length to normalize
+    // average length of adjacent segments (or use segLen[i-1] or i)
     const lenLeft = segLen[i - 1] || 0;
     const lenRight = segLen[i] || 0;
     const localLen = (lenLeft + lenRight) / 2 || 1; // avoid div0
