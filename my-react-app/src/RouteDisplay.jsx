@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { computeDetailedCurvature } from "./curvature.js";
 import CurvatureLine from "./CurvatureLine.jsx";
 import RouteLine from "./RouteLine.jsx";
+import "../src/route.css";
 
 function RouteDisplay({ origin, destination }) {
   const map = useMap();
@@ -13,11 +14,12 @@ function RouteDisplay({ origin, destination }) {
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
 
+  const [routeCoords, setRouteCoords] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [curvatures, setCurvatures] = useState([]);
   const [showLine, setShowLine] = useState([false, false, false]);
   const [showCurves, setShowCurves] = useState([false, false, false]);
-  const [hasFitBounds, setHasFitBounds] = useState(false);
+  // const [hasFitBounds, setHasFitBounds] = useState(false);
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
@@ -57,32 +59,46 @@ function RouteDisplay({ origin, destination }) {
         setRoutes(allRoutes);
         directionsRenderer.setDirections(response);
 
-        setRoutes(
-          allRoutes.map((r) =>
-            r.overview_path.map((p) => ({
-              lat: p.lat(),
-              lng: p.lng(),
-            }))
-          )
-        );
-
-        if (coreLibrary && map && !hasFitBounds) {
-          const bounds = new coreLibrary.LatLngBounds();
-          allRoutes[0].overview_path.forEach((p) => bounds.extend(p));
-          map.fitBounds(bounds);
-          setHasFitBounds(true);
-        }
-
-        const newCurvatures = allRoutes.map((r) => {
-          const leg = r.legs[0];
-          const steps = leg.steps;
-          const coords = steps.flatMap((s) =>
-            s.path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+        const allCoords = allRoutes.map((route) => {
+          const steps = route.legs[0].steps;
+          return steps.flatMap((step) =>
+            step.path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
           );
-          return computeDetailedCurvature(coords);
         });
 
-        setCurvatures(newCurvatures);
+        setRouteCoords(allCoords);
+
+        const allCurvatures = allCoords.map((coords) =>
+          computeDetailedCurvature(coords)
+        );
+
+        setCurvatures(allCurvatures);
+        // setRoutes(
+        //   allRoutes.map((r) =>
+        //     r.overview_path.map((p) => ({
+        //       lat: p.lat(),
+        //       lng: p.lng(),
+        //     }))
+        //   )
+        // );
+
+        // if (coreLibrary && map && !hasFitBounds) {
+        //   const bounds = new coreLibrary.LatLngBounds();
+        //   allRoutes[0].overview_path.forEach((p) => bounds.extend(p));
+        //   map.fitBounds(bounds);
+        //   setHasFitBounds(true);
+        // }
+
+        // const newCurvatures = allRoutes.map((r) => {
+        //   const leg = r.legs[0];
+        //   const steps = leg.steps;
+        //   const coords = steps.flatMap((s) =>
+        //     s.path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+        //   );
+        //   return computeDetailedCurvature(coords);
+        // });
+
+        // setCurvatures(newCurvatures);
       }
     );
   }, [
@@ -92,7 +108,7 @@ function RouteDisplay({ origin, destination }) {
     destination,
     coreLibrary,
     map,
-    hasFitBounds,
+    //  hasFitBounds,
   ]);
 
   function toggleLine(i) {
@@ -110,63 +126,52 @@ function RouteDisplay({ origin, destination }) {
       return copy;
     });
   }
+  console.log(routes[0]);
 
   return (
     <div>
       <h2>Route Options</h2>
-      {routes.map((route, i) => (
-        <div key={i} style={{ marginBottom: "12px" }}>
-          <h3>
-            Route {i + 1}: {route.summary}
-          </h3>
+      {routes.length > 0 &&
+        routes.map((route, i) => (
+          <div key={i} style={{ marginBottom: "12px" }}>
+            <h3>
+              Route {i + 1}: {routes[i].summary}
+              <p
+                style={{
+                  margin: "2px",
+                  padding: "0px",
+                  fontWeight: "normal",
+                  fontSize: "12px",
+                }}
+              >
+                {route.legs[0].distance.text} · {route.legs[0].duration.text}
+              </p>
+            </h3>
 
-          <button onClick={() => toggleLine(i)}>
-            {showLine[i] ? "Hide Line" : "Show Line"}
-          </button>
+            <div className="show-buttons">
+              <button
+                onClick={() => toggleLine(i)}
+                style={{ marginRight: "10px" }}
+              >
+                {showLine[i] ? "Hide Line" : "Show Line"}
+              </button>
 
-          <button onClick={() => toggleCurve(i)}>
-            {showCurves[i] ? "Hide Curves" : "Show Curves"}
-          </button>
-
-          {showLine[i] && curvatures[i] && (
-            <RouteLine coords={curvatures[i].routeCoords} color="#000000" />
-          )}
-
-          {showCurves[i] && curvatures[i] && (
-            <CurvatureLine
-              coords={curvatures[i].routeCoords}
-              profile={curvatures[i].curvatureProfile}
-            />
-          )}
-        </div>
-      ))}
-
-      {/* {routes.map((route, i) => (
-        <div key={i} style={{ marginBotom: "12px" }}>
-          <h3>
-            Route {i + 1}: {route.summary}
-          </h3>
-
-          <button onClick={() => toggleLine(i)}>
-            {showLine[i] ? "Hide Route" : "Show Route"}
-          </button>
-
-          {curvatures[i] && (
-            <>
               <button onClick={() => toggleCurve(i)}>
                 {showCurves[i] ? "Hide Curves" : "Show Curves"}
               </button>
+            </div>
+            {showLine[i] && curvatures[i] && (
+              <RouteLine coords={curvatures[i].routeCoords} color="#000000" />
+            )}
 
-              {showCurves[i] && (
-                <CurvatureLine
-                  coords={curvatures[i].routeCoords}
-                  profile={curvatures[i].curvatureProfile}
-                />
-              )}
-            </>
-          )}
-        </div>
-      ))} */}
+            {showCurves[i] && curvatures[i] && (
+              <CurvatureLine
+                coords={curvatures[i].routeCoords}
+                profile={curvatures[i].curvatureProfile}
+              />
+            )}
+          </div>
+        ))}
     </div>
   );
 }

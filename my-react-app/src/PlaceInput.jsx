@@ -42,10 +42,10 @@ export default function PlaceAutocompleteInput({ label, onSelect }) {
         type="text"
         placeholder="Search..."
         style={{
-          width: "100%",
+          width: "25vw",
           padding: "0.5rem",
           borderRadius: "6px",
-          border: "1px solid #ccc",
+          border: "1px solid #3e639eff",
         }}
       />
     </div>
