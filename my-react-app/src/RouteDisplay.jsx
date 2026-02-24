@@ -1,25 +1,27 @@
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import React, { useState, useEffect } from "react";
-import { computeDetailedCurvature } from "./curvature.js";
+import {
+  computeDetailedCurvature,
+  computeAverageSpeedMph,
+  estimateSpeedStats,
+} from "./curvature.js";
 import CurvatureLine from "./CurvatureLine.jsx";
 import RouteLine from "./RouteLine.jsx";
 import "../src/route.css";
 
 function RouteDisplay({ origin, destination }) {
   const map = useMap();
-  // const mapsLib = useMapsLibrary("maps");
   const routesLibrary = useMapsLibrary("routes");
   const coreLibrary = useMapsLibrary("core");
 
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
 
-  const [routeCoords, setRouteCoords] = useState([]);
+  //const [setRouteCoords] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [curvatures, setCurvatures] = useState([]);
   const [showLine, setShowLine] = useState([false, false, false]);
   const [showCurves, setShowCurves] = useState([false, false, false]);
-  // const [hasFitBounds, setHasFitBounds] = useState(false);
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
@@ -33,7 +35,7 @@ function RouteDisplay({ origin, destination }) {
           strokeOpacity: 0.4,
           strokeWeight: 2,
         },
-      })
+      }),
     );
   }, [routesLibrary, map]);
 
@@ -48,6 +50,11 @@ function RouteDisplay({ origin, destination }) {
         destination,
         travelMode: "DRIVING",
         provideRouteAlternatives: true,
+
+        drivingOptions: {
+          departureTime: new Date(),
+          trafficModel: "bestguess",
+        },
       },
       (response, status) => {
         if (status !== "OK") {
@@ -59,47 +66,44 @@ function RouteDisplay({ origin, destination }) {
         setRoutes(allRoutes);
         directionsRenderer.setDirections(response);
 
-        const allCoords = allRoutes.map((route) => {
+        const allMetrics = allRoutes.map((route) => {
           const steps = route.legs[0].steps;
-          return steps.flatMap((step) =>
-            step.path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+
+          const coords = steps.flatMap((step) =>
+            step.path.map((p) => ({ lat: p.lat(), lng: p.lng() })),
           );
+
+          const leg = route.legs[0];
+
+          const curvature = computeDetailedCurvature(coords);
+          const avgSpeed = computeAverageSpeedMph(steps);
+          const speedStats = estimateSpeedStats(steps);
+          const trafficLevel = computeTrafficLevel(
+            leg.duration.value,
+            leg.duration_in_traffic?.value,
+          );
+
+          const avgCurvature = curvature.avgCurvatureRadPerM;
+          const trafficRatio =
+            leg.duration_in_traffic?.value / leg.duration.value;
+          const safetyScore = computeSafetyScore(
+            avgCurvature,
+            trafficRatio,
+            avgSpeed,
+          );
+
+          return {
+            ...curvature,
+            avgSpeedMph: avgSpeed,
+            estSpeed: speedStats.avgEstimatedSpeed,
+            topSpeed: speedStats.topEstimatedSpeed,
+            trafficLevel,
+            safetyScore,
+          };
         });
 
-        setRouteCoords(allCoords);
-
-        const allCurvatures = allCoords.map((coords) =>
-          computeDetailedCurvature(coords)
-        );
-
-        setCurvatures(allCurvatures);
-        // setRoutes(
-        //   allRoutes.map((r) =>
-        //     r.overview_path.map((p) => ({
-        //       lat: p.lat(),
-        //       lng: p.lng(),
-        //     }))
-        //   )
-        // );
-
-        // if (coreLibrary && map && !hasFitBounds) {
-        //   const bounds = new coreLibrary.LatLngBounds();
-        //   allRoutes[0].overview_path.forEach((p) => bounds.extend(p));
-        //   map.fitBounds(bounds);
-        //   setHasFitBounds(true);
-        // }
-
-        // const newCurvatures = allRoutes.map((r) => {
-        //   const leg = r.legs[0];
-        //   const steps = leg.steps;
-        //   const coords = steps.flatMap((s) =>
-        //     s.path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
-        //   );
-        //   return computeDetailedCurvature(coords);
-        // });
-
-        // setCurvatures(newCurvatures);
-      }
+        setCurvatures(allMetrics);
+      },
     );
   }, [
     directionsService,
@@ -108,7 +112,6 @@ function RouteDisplay({ origin, destination }) {
     destination,
     coreLibrary,
     map,
-    //  hasFitBounds,
   ]);
 
   function toggleLine(i) {
@@ -126,7 +129,29 @@ function RouteDisplay({ origin, destination }) {
       return copy;
     });
   }
-  console.log(routes[0]);
+
+  function computeTrafficLevel(normalTime, trafficTime) {
+    if (!trafficTime || !normalTime)
+      return "Invalid Request: Time not provided";
+
+    const ratio = trafficTime / normalTime;
+
+    if (ratio < 1.05) return "Low";
+    if (ratio < 1.25) return "Moderate";
+    return "Heavy";
+  }
+
+  function computeSafetyScore(avgCurvature, trafficRatio, avgSpeed) {
+    const traffic = Math.min((trafficRatio - 1) / 0.5, 1);
+    const speed = Math.min((avgSpeed - 25) / 50, 1);
+    const curvatureScore = Math.min(avgCurvature / 0.02, 1);
+
+    const overallScore = 0.3 * traffic + 0.35 * speed + 0.35 * curvatureScore;
+
+    const safetyScore = Math.round((1 - overallScore) * 100);
+
+    return safetyScore;
+  }
 
   return (
     <div>
@@ -134,31 +159,49 @@ function RouteDisplay({ origin, destination }) {
       {routes.length > 0 &&
         routes.map((route, i) => (
           <div key={i} style={{ marginBottom: "12px" }}>
-            <h3>
-              Route {i + 1}: {routes[i].summary}
-              <p
-                style={{
-                  margin: "2px",
-                  padding: "0px",
-                  fontWeight: "normal",
-                  fontSize: "12px",
-                }}
-              >
-                {route.legs[0].distance.text} · {route.legs[0].duration.text}
-              </p>
-            </h3>
+            <div style={{ border: "1px, #2064c3, solid", padding: "5px" }}>
+              <h3>
+                Route {i + 1}: {routes[i].summary}
+                <p
+                  style={{
+                    margin: "2px",
+                    padding: "0px",
+                    fontWeight: "normal",
+                    fontSize: "12px",
+                  }}
+                >
+                  {route.legs[0].distance.text} · {route.legs[0].duration.text}
+                </p>
+              </h3>
 
-            <div className="show-buttons">
-              <button
-                onClick={() => toggleLine(i)}
-                style={{ marginRight: "10px" }}
-              >
-                {showLine[i] ? "Hide Line" : "Show Line"}
-              </button>
+              <div className="show-buttons">
+                <button
+                  onClick={() => toggleLine(i)}
+                  style={{ marginRight: "10px" }}
+                >
+                  {showLine[i] ? "Hide Line" : "Show Line"}
+                </button>
 
-              <button onClick={() => toggleCurve(i)}>
-                {showCurves[i] ? "Hide Curves" : "Show Curves"}
-              </button>
+                <button onClick={() => toggleCurve(i)}>
+                  {showCurves[i] ? "Hide Curves" : "Show Curves"}
+                </button>
+                <div>
+                  <h4>
+                    Average Speed: {curvatures[i].estSpeed.toFixed(1)} mph
+                  </h4>
+                  <p>Top Speed Limit: {curvatures[i].topSpeed} mph</p>
+                </div>
+                {curvatures[i] && (
+                  <>
+                    <h4>Traffic: {curvatures[i].trafficLevel}</h4>
+                  </>
+                )}
+                {curvatures[i] && (
+                  <>
+                    <h5>Safety Score: {curvatures[i].safetyScore}</h5>
+                  </>
+                )}
+              </div>
             </div>
             {showLine[i] && curvatures[i] && (
               <RouteLine coords={curvatures[i].routeCoords} color="#000000" />

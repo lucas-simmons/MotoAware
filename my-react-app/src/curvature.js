@@ -2,19 +2,17 @@ import CurvatureLine from "./CurvatureLine";
 
 const EARTH_R = 6371000; // meters
 
-// Convert lat/lng (degrees) to local planar meters (equirectangular around a center latitude)
 export function latLngsToXY(coords) {
   if (!coords.length) return [];
   const lat0 = (coords[0].lat * Math.PI) / 180;
   const cosLat0 = Math.cos(lat0);
   return coords.map((p) => {
-    const x = ((p.lng * Math.PI) / 180) * EARTH_R * cosLat0; // meters east
-    const y = ((p.lat * Math.PI) / 180) * EARTH_R; // meters north
+    const x = ((p.lng * Math.PI) / 180) * EARTH_R * cosLat0; //  east
+    const y = ((p.lat * Math.PI) / 180) * EARTH_R; // north
     return { x, y };
   });
 }
 
-// Euclidean distance between two planar points (meters)
 function dist(a, b) {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
@@ -26,7 +24,6 @@ export function curvatureToColor(seg) {
   return "#FF0000"; //red
 }
 
-// Angle (radians) between vect a->b and b->c, with straight=0
 function angleAt(a, b, c) {
   // vectors b->a and b->c, but both pointing away to produce 0 for straight
   const v1x = a.x - b.x;
@@ -115,4 +112,55 @@ export function computeDetailedCurvature(coords) {
     curvatureProfile: profile,
     routeCoords: coords,
   };
+}
+export function computeAverageSpeedMph(steps) {
+  let totalDistance = 0; // meters
+  let totalTime = 0; // seconds
+
+  steps.forEach((step) => {
+    totalDistance += step.distance.value;
+    totalTime += step.duration.value;
+  });
+
+  if (totalTime === 0) return 0;
+
+  const metersPerSecond = totalDistance / totalTime;
+  return metersPerSecond * 2.23694; // mph
+}
+export function estimateSpeedStats(steps) {
+  let weightedSpeed = 0;
+  let totalDistance = 0;
+  let topSpeed = 0;
+
+  steps.forEach((step) => {
+    const speed = estimateStepSpeedLimit(step);
+
+    // Track top speed
+    if (speed > topSpeed) {
+      topSpeed = speed;
+    }
+
+    // Weighted average
+    weightedSpeed += speed * step.distance.value;
+    totalDistance += step.distance.value;
+  });
+
+  const avgSpeed = totalDistance === 0 ? 0 : weightedSpeed / totalDistance;
+
+  return {
+    avgEstimatedSpeed: avgSpeed,
+    topEstimatedSpeed: topSpeed,
+  };
+}
+
+export function estimateStepSpeedLimit(step) {
+  const text = step.instructions.toLowerCase();
+
+  if (text.includes("interstate") || text.includes("i-")) return 65;
+  if (text.includes("highway") || text.includes("us-")) return 55;
+  if (text.includes("parkway")) return 50;
+  if (text.includes("avenue") || text.includes("boulevard")) return 40;
+  if (text.includes("street") || text.includes("road")) return 30;
+
+  return 35;
 }
