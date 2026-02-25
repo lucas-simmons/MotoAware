@@ -38,10 +38,8 @@ const App = () => {
           <div
             style={{
               width: "100vw",
-              height: "100vh",
-              justifyContent: "center",
+
               marginTop: "30px",
-              alignContent: "center",
             }}
             className="content"
           >
@@ -83,7 +81,10 @@ const App = () => {
               disableDefaultUI={false}
               zoomControl={true}
               mapTypeControl={true}
-              style={{ width: "100%", height: "100%", display: "flex" }}
+              style={{
+                display: "flex",
+                minHeight: "500px",
+              }}
               className="map-container"
             >
               <div className="descript">
