@@ -44,8 +44,8 @@ export default function PlaceAutocompleteInput({ label, onSelect }) {
         style={{
           width: "25vw",
           padding: "0.5rem",
-          borderRadius: "6px",
-          border: "1px solid #3e639eff",
+          backgroundColor: "#c4c4c4",
+          marginRight: "5px",
         }}
       />
     </div>

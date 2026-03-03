@@ -3,7 +3,6 @@ import "../src/App.css";
 import RouteDisplay from "./RouteDisplay.jsx";
 import React, { useMemo, useState } from "react";
 import PlaceAutocompleteInput from "./PlaceInput.jsx";
-import "../src/MapUI.css";
 import Header from "./Header.jsx";
 import Description from "./Description.jsx";
 
@@ -47,8 +46,10 @@ const App = () => {
               <div
                 style={{
                   padding: "1rem",
-                  background: "#344469df",
+                  background: "#402e1b",
                   color: "black",
+                  boxShadow:
+                    "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
                 }}
                 className="places"
               >

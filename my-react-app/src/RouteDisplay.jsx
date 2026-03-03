@@ -136,17 +136,18 @@ function RouteDisplay({ origin, destination }) {
 
     const ratio = trafficTime / normalTime;
 
-    if (ratio < 1.05) return "Low";
-    if (ratio < 1.25) return "Moderate";
-    return "Heavy";
+    if (ratio < 1.05) return "🟢 Low 🟢";
+    if (ratio < 1.25) return "🟠 Moderate 🟠";
+    return "🔴 Heavy 🔴";
   }
 
   function computeSafetyScore(avgCurvature, trafficRatio, avgSpeed) {
     const traffic = Math.min((trafficRatio - 1) / 0.5, 1);
     const speed = Math.min((avgSpeed - 25) / 50, 1);
-    const curvatureScore = Math.min(avgCurvature / 0.02, 1);
 
-    const overallScore = 0.3 * traffic + 0.35 * speed + 0.35 * curvatureScore;
+    const curvatureScore = Math.min(Math.pow(avgCurvature / 0.02, 2), 1);
+
+    const overallScore = 0.3 * traffic + 0.2 * speed + 0.5 * curvatureScore;
 
     const safetyScore = Math.round((1 - overallScore) * 100);
 
@@ -154,12 +155,35 @@ function RouteDisplay({ origin, destination }) {
   }
 
   return (
-    <div>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        padding: "10px",
+
+        borderRadius: "24px",
+        margin: "10px",
+      }}
+    >
       <h2>Route Options</h2>
       {routes.length > 0 &&
         routes.map((route, i) => (
-          <div key={i} style={{ marginBottom: "12px" }}>
-            <div style={{ border: "1px, #2064c3, solid", padding: "5px" }}>
+          <div
+            key={i}
+            style={{
+              margin: "12px",
+
+              borderRadius: "24px",
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: "#a5876a",
+                padding: "10px",
+                boxShadow:
+                  "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+              }}
+            >
               <h3>
                 Route {i + 1}: {routes[i].summary}
                 <p
@@ -168,6 +192,7 @@ function RouteDisplay({ origin, destination }) {
                     padding: "0px",
                     fontWeight: "normal",
                     fontSize: "12px",
+                    color: "black",
                   }}
                 >
                   {route.legs[0].distance.text} · {route.legs[0].duration.text}
@@ -196,11 +221,19 @@ function RouteDisplay({ origin, destination }) {
                     <h4>Traffic: {curvatures[i].trafficLevel}</h4>
                   </>
                 )}
-                {curvatures[i] && (
-                  <>
-                    <h5>Safety Score: {curvatures[i].safetyScore}</h5>
-                  </>
-                )}
+                <div
+                  style={{
+                    backgroundColor: "rgb(199, 161, 124)",
+                    padding: "0.0005rem",
+                    textAlign: "center",
+                  }}
+                >
+                  {curvatures[i] && (
+                    <>
+                      <h4> Safety Score: {curvatures[i].safetyScore}/100</h4>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             {showLine[i] && curvatures[i] && (

@@ -4,9 +4,9 @@
   font-weight: 800;
 
   color-scheme: light dark;
-  color: whitesmoke;
-  background-color: #002455;
-
+  color: rgb(86, 77, 77);
+  /* background-color: #FFF3CD; */
+background: radial-gradient(circle,rgba(255, 203, 130, 1) 22%, rgba(255, 142, 97, 1) 50%);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -38,18 +38,18 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #816953;
   cursor: pointer;
   transition: border-color 0.25s;
+  margin: 2px;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #c8c9d4;
 }
 button:focus,
 button:focus-visible {
@@ -69,5 +69,5 @@ button:focus-visible {
   }
 }
 header {
-  background-color: #050E3C;
+  background-color: #4D3E3E;
 }

@@ -1,9 +1,10 @@
 .description {
     padding: 10px;
     font-weight:normal;
-    border: 2px solid rgb(129, 209, 238);
     width: fit-content;
     height: fit-content;
     margin: 10px;
+    background-color: #a5876a;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     
 }
