@@ -5,7 +5,7 @@ import React, { useMemo, useState } from "react";
 import PlaceAutocompleteInput from "./PlaceInput.jsx";
 import Header from "./Header.jsx";
 import Description from "./Description.jsx";
-
+import Explanation from "./Explanation.jsx";
 const App = () => {
   const position = useMemo(() => ({ lat: 35.5951, lng: -82.5515 }), []);
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -46,7 +46,7 @@ const App = () => {
               <div
                 style={{
                   padding: "1rem",
-                  background: "#402e1b",
+                  background: "#e4bf98",
                   color: "black",
                   boxShadow:
                     "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
@@ -85,6 +85,8 @@ const App = () => {
               style={{
                 display: "flex",
                 minHeight: "500px",
+                boxShadow:
+                  "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
               }}
               className="map-container"
             >
@@ -94,6 +96,7 @@ const App = () => {
                   <RouteDisplay origin={origin} destination={destination} />
                 )}
               </div>
+              <Explanation />
             </Map>
           </div>
         </APIProvider>
