@@ -3,8 +3,11 @@ import React from "react";
 export default function Explanation() {
   return (
     <>
-      <div style={{ border: "1px solid black" }}>
-        <h1>test</h1>
+      <div style={{ justifyItems: "center", paddingBottom: "5px" }}>
+        <h1 style={{ paddingBottom: "0px" }}>
+          Average Curvature + Average Speed + Traffic Level
+        </h1>
+        <h1>= Safety Score</h1>
       </div>
     </>
   );

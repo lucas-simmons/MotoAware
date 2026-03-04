@@ -8,6 +8,7 @@ import {
 import CurvatureLine from "./CurvatureLine.jsx";
 import RouteLine from "./RouteLine.jsx";
 import "../src/route.css";
+import { Switch } from "antd";
 
 function RouteDisplay({ origin, destination }) {
   const map = useMap();
@@ -200,16 +201,17 @@ function RouteDisplay({ origin, destination }) {
               </h3>
 
               <div className="show-buttons">
-                <button
-                  onClick={() => toggleLine(i)}
-                  style={{ marginRight: "10px" }}
-                >
-                  {showLine[i] ? "Hide Line" : "Show Line"}
-                </button>
-
-                <button onClick={() => toggleCurve(i)}>
-                  {showCurves[i] ? "Hide Curves" : "Show Curves"}
-                </button>
+                <Switch
+                  checkedChildren="Hide Line"
+                  unCheckedChildren="Show Line"
+                  onChange={() => toggleLine(i)}
+                />
+                <Switch
+                  checkedChildren="Hide Curves"
+                  unCheckedChildren="Show Curves"
+                  onChange={() => toggleCurve(i)}
+                  style={{ marginLeft: "2x" }}
+                />
                 <div>
                   <h4>
                     Average Speed: {curvatures[i].estSpeed.toFixed(1)} mph

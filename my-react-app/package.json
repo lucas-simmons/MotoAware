@@ -13,6 +13,7 @@
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
     "@vis.gl/react-google-maps": "^1.7.0",
+    "antd": "^6.3.1",
     "express": "^5.2.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
