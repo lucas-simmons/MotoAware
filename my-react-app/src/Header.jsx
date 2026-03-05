@@ -1,4 +1,5 @@
 import "./header.css";
+import logo from "../motosport_icon.png";
 
 function Header() {
   return (
@@ -7,7 +8,7 @@ function Header() {
       style={{ display: "flex", justifyContent: "space-between" }}
     >
       <div className="header-title">Moto Aware</div>
-      <img src="../motosport_icon.png" width="50" alt="motorcylce icon" />
+      <img src={logo} width="50" alt="motorcylce icon" />
       <div className="header-actions"></div>
     </header>
   );
