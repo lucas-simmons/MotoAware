@@ -154,6 +154,9 @@ function RouteDisplay({ origin, destination }) {
 
     return safetyScore;
   }
+  function buildGoogleMapsLink(origin, destination) {
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&travelmode=driving`;
+  }
 
   return (
     <div
@@ -189,7 +192,7 @@ function RouteDisplay({ origin, destination }) {
                 Route {i + 1}: {routes[i].summary}
                 <p
                   style={{
-                    margin: "2px",
+                    margin: "0px",
                     padding: "0px",
                     fontWeight: "normal",
                     fontSize: "12px",
@@ -198,6 +201,19 @@ function RouteDisplay({ origin, destination }) {
                 >
                   {route.legs[0].distance.text} · {route.legs[0].duration.text}
                 </p>
+                <a
+                  href={buildGoogleMapsLink(origin, destination)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    margin: "0px",
+                    padding: "4px",
+                    fontWeight: "normal",
+                    fontSize: "12px",
+                  }}
+                >
+                  View in Google Maps
+                </a>
               </h3>
 
               <div className="show-buttons">
