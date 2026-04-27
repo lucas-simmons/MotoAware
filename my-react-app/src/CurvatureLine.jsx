@@ -51,7 +51,7 @@ function curvatureToColor(k) {
   if (k < 0.05) return "#00FF00"; // green (almost straight)
   if (k < 0.1) return "#ADFF2F"; // light green (gentle curve)
   if (k < 0.15) return "#FFFF00"; // yellow (noticeable)
-  if (k < 0.3) return "#FFA500"; // orange (strong)
-  if (k < 0.4) return "#FF4500"; // deep orange
-  return "#FF0000"; // red (very sharp)
+  if (k < 0.3) return "#FFA500"; // orange (sharp)
+  if (k < 0.4) return "#FF4500"; // deep orange (sharper)
+  return "#FF0000"; // red (sharpest)
 }

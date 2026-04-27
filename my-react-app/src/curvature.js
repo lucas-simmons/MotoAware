@@ -1,6 +1,6 @@
 import CurvatureLine from "./CurvatureLine";
 
-const EARTH_R = 6371000; // meters
+const EARTH_R = 6371000; // meters for curvature of the earth
 
 export function latLngsToXY(coords) {
   if (!coords.length) return [];
@@ -38,13 +38,12 @@ function angleAt(a, b, c) {
   return Math.acos(cosTheta);
 }
 /**
- * Returns:
- *   avgAngleRad,         // average turning angle (radians) per vertex
- *   avgAngleDeg,         // same in degrees
- *   avgCurvatureRadPerM, // mean(curvature = angle / segment_length)   (rad / meter)
- *   integratedCurvature, // sum(angle) in radians (total turning)
- *   totalLengthMeters,   // route length (meters)
- *   curvatureProfile     // array of {index, angleRad, segLen, curvatureRadPerM}
+ *   avgAngleRad,         // average turning angle
+ *   avgAngleDeg,         // in degrees
+ *   avgCurvatureRadPerM, // mean
+ *   integratedCurvature, // sum in radians
+ *   totalLengthMeters,   // route length
+ *   curvatureProfile     // array
  */
 export function computeDetailedCurvature(coords) {
   if (!coords || coords.length < 3) {
@@ -68,18 +67,18 @@ export function computeDetailedCurvature(coords) {
   const segLen = [];
   for (let i = 0; i < n - 1; i++) segLen[i] = dist(pts[i], pts[i + 1]);
 
-  // curvature at interior points
+  // curvature at interior angle
   for (let i = 1; i < n - 1; i++) {
     const a = pts[i - 1],
       b = pts[i],
       c = pts[i + 1];
-    const angle = angleAt(a, b, c); // radians, 0 = straight
-    // segment length to normalize
-    // average length of adjacent segments (or use segLen[i-1] or i)
+    const angle = angleAt(a, b, c);
+
+    // average length of adjacent segments
     const lenLeft = segLen[i - 1] || 0;
     const lenRight = segLen[i] || 0;
-    const localLen = (lenLeft + lenRight) / 2 || 1; // avoid div0
-    const curvature = angle / localLen; // rad per meter (local)
+    const localLen = (lenLeft + lenRight) / 2 || 1;
+    const curvature = angle / localLen; // rad per meter
     profile.push({
       index: i,
       angleRad: angle,
@@ -95,10 +94,9 @@ export function computeDetailedCurvature(coords) {
   // total route length
   for (let i = 0; i < n - 1; i++) totalLen += segLen[i] || 0;
 
-  // compute averages
   const avgAngleRad = totalAngle / Math.max(1, profile.length);
   const avgAngleDeg = (avgAngleRad * 180) / Math.PI;
-  // average curvature (rad per meter) mean over the profile
+  // average curvature mean over profile
   const avgCurvatureRadPerM =
     profile.reduce((s, p) => s + p.curvatureRadPerM, 0) /
     Math.max(1, profile.length);
@@ -114,7 +112,7 @@ export function computeDetailedCurvature(coords) {
   };
 }
 export function computeAverageSpeedMph(steps) {
-  let totalDistance = 0; // meters
+  let totalDistance = 0;
   let totalTime = 0; // seconds
 
   steps.forEach((step) => {
@@ -125,7 +123,7 @@ export function computeAverageSpeedMph(steps) {
   if (totalTime === 0) return 0;
 
   const metersPerSecond = totalDistance / totalTime;
-  return metersPerSecond * 2.23694; // mph
+  return metersPerSecond * 2.23694; // mph conversion
 }
 export function estimateSpeedStats(steps) {
   let weightedSpeed = 0;
@@ -135,12 +133,12 @@ export function estimateSpeedStats(steps) {
   steps.forEach((step) => {
     const speed = estimateStepSpeedLimit(step);
 
-    // Track top speed
+    // top speed
     if (speed > topSpeed) {
       topSpeed = speed;
     }
 
-    // Weighted average
+    // weighted average
     weightedSpeed += speed * step.distance.value;
     totalDistance += step.distance.value;
   });

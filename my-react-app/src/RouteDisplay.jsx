@@ -40,7 +40,6 @@ function RouteDisplay({ origin, destination }) {
     );
   }, [routesLibrary, map]);
 
-  // Request routes
   useEffect(() => {
     if (!directionsService || !directionsRenderer || !origin || !destination)
       return;
